@@ -45,19 +45,8 @@
 
 <p align="center">
   Language: 
-  <a href="#">English</a> | 
-  <a href="#">Português (Brasil)</a> | 
-  <a href="#">简体中文</a> | 
-  <a href="#">繁體中文</a> | 
-  <a href="#">日本語</a> | 
-  <a href="#">한국어</a> | 
-  <a href="#">Türkçe</a> | 
-  <a href="#">Русский</a> | 
-  <a href="#">Tiếng Việt</a> | 
-  <a href="#">ไทย</a> | 
-  <a href="#">Deutsch</a> | 
-  <a href="#">Español</a> | 
-  <a href="#">Українська</a>
+  <a href="https://github.com/PixelCity-dev/pixelguard/blob/master/README.md">English</a> | 
+  <a href="https://github.com/PixelCity-dev/pixelguard/blob/master/README.de.md">Deutsch</a>
 </p>
 
 <br>
