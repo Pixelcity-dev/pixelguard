@@ -1,0 +1,12 @@
+# Binaries
+pixelguard
+*.exe
+
+# Reports
+pixelguard-report.json
+pixelguard-report.md
+pixelguard-report.sarif
+
+# OS
+.DS_Store
+Thumbs.db
