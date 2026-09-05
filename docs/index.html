@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PixelGuard — Interactive Project Auditor</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: #1a1a2e;
+            --accent: #7D56F4;
+            --accent-glow: rgba(125, 86, 244, 0.3);
+            --green: #04B575;
+            --red: #FF5F5F;
+            --yellow: #FFD93D;
+            --orange: #FF8C00;
+            --text-primary: #f0f0f5;
+            --text-secondary: #8888aa;
+            --border: #2a2a3e;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .bg-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(rgba(125, 86, 244, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(125, 86, 244, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .bg-glow {
+            position: fixed;
+            top: -200px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* NAV */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--accent);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo svg {
+            width: 28px;
+            height: 28px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 32px;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--text-primary);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #6a45e0;
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* HERO */
+        .hero {
+            text-align: center;
+            padding: 100px 0 80px;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 16px;
+            background: rgba(125, 86, 244, 0.1);
+            border: 1px solid rgba(125, 86, 244, 0.3);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: var(--accent);
+            margin-bottom: 32px;
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            font-weight: 700;
+            line-height: 1.1;
+            margin-bottom: 24px;
+            background: linear-gradient(135deg, #fff 0%, #7D56F4 50%, #04B575 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            max-width: 640px;
+            margin: 0 auto 40px;
+            line-height: 1.6;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: 48px;
+            justify-content: center;
+            margin-top: 64px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* TERMINAL */
+        .terminal-section {
+            padding: 80px 0;
+        }
+
+        .terminal {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            max-width: 800px;
+            margin: 0 auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .terminal-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 16px;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .terminal-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .terminal-dot.red { background: #ff5f56; }
+        .terminal-dot.yellow { background: #ffbd2e; }
+        .terminal-dot.green { background: #27c93f; }
+
+        .terminal-title {
+            flex: 1;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .terminal-body {
+            padding: 24px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            line-height: 1.8;
+            overflow-x: auto;
+        }
+
+        .terminal-body .prompt { color: var(--accent); }
+        .terminal-body .cmd { color: var(--text-primary); }
+        .terminal-body .success { color: var(--green); }
+        .terminal-body .error { color: var(--red); }
+        .terminal-body .warning { color: var(--yellow); }
+        .terminal-body .info { color: var(--text-secondary); }
+        .terminal-body .critical { color: var(--red); font-weight: 700; }
+        .terminal-body .high { color: var(--orange); font-weight: 700; }
+        .terminal-body .medium { color: var(--yellow); }
+        .terminal-body .dim { color: var(--text-secondary); }
+
+        /* FEATURES */
+        .features {
+            padding: 80px 0;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            margin-bottom: 64px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 24px;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 32px;
+            transition: all 0.3s;
+        }
+
+        .feature-card:hover {
+            border-color: var(--accent);
+            box-shadow: 0 0 30px rgba(125, 86, 244, 0.1);
+            transform: translateY(-4px);
+        }
+
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 16px;
+        }
+
+        .feature-card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 12px;
+        }
+
+        .feature-card p {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* ARCHITECTURE */
+        .architecture {
+            padding: 80px 0;
+        }
+
+        .arch-diagram {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 40px;
+            max-width: 800px;
+            margin: 0 auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            overflow-x: auto;
+        }
+
+        .arch-diagram .folder { color: var(--accent); }
+        .arch-diagram .file { color: var(--green); }
+        .arch-diagram .comment { color: var(--text-secondary); }
+
+        /* TUI PREVIEW */
+        .tui-section {
+            padding: 80px 0;
+        }
+
+        .tui-preview {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 700px;
+            margin: 0 auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            line-height: 1.8;
+        }
+
+        .tui-title {
+            background: var(--accent);
+            color: white;
+            padding: 8px 16px;
+            display: inline-block;
+            border-radius: 4px;
+            margin-bottom: 16px;
+            font-weight: 700;
+        }
+
+        .tui-section h4 {
+            color: #BD93F9;
+            font-size: 0.9rem;
+            margin: 16px 0 8px;
+        }
+
+        .tui-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tui-cursor {
+            background: #44475A;
+            color: #f8f8f2;
+            padding: 0 4px;
+        }
+
+        .status-bar {
+            background: #6272A4;
+            color: #f8f8f2;
+            padding: 8px 16px;
+            margin-top: 16px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+        }
+
+        /* FOOTER */
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 40px 0;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero-stats {
+                flex-direction: column;
+                gap: 24px;
+            }
+
+            .nav-links {
+                gap: 16px;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-grid"></div>
+    <div class="bg-glow"></div>
+
+    <div class="container">
+        <nav>
+            <a href="/" class="logo">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+                PixelGuard
+            </a>
+            <div class="nav-links">
+                <a href="https://github.com/PixelCity-dev/pixelguard">GitHub</a>
+                <a href="https://github.com/PixelCity-dev/pixelguard/blob/master/AGENT_PROMPT.md">AI Agent</a>
+                <a href="https://github.com/PixelCity-dev/pixelguard/blob/master/README.md">Docs</a>
+                <a href="https://github.com/PixelCity-dev/pixelguard" class="btn btn-primary">Star on GitHub</a>
+            </div>
+        </nav>
+
+        <section class="hero">
+            <div class="hero-badge">
+                🛡️ v0.1.0 — By Jay & PixelCity
+            </div>
+            <h1>Interactive Project<br>Auditor</h1>
+            <p>Scan once, explore forever. One report covering build errors, dependency conflicts, and security vulnerabilities — ranked by real severity.</p>
+            <div class="hero-actions">
+                <a href="https://github.com/PixelCity-dev/pixelguard#install" class="btn btn-primary">
+                    Install PixelGuard
+                </a>
+                <a href="https://github.com/PixelCity-dev/pixelguard" class="btn btn-secondary">
+                    View on GitHub
+                </a>
+            </div>
+            <div class="hero-stats">
+                <div class="stat">
+                    <div class="stat-value">Go</div>
+                    <div class="stat-label">Language</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">MIT</div>
+                    <div class="stat-label">License</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">OSV</div>
+                    <div class="stat-label">Security Feed</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">TUI</div>
+                    <div class="stat-label">Interface</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="terminal-section">
+            <div class="terminal">
+                <div class="terminal-header">
+                    <div class="terminal-dot red"></div>
+                    <div class="terminal-dot yellow"></div>
+                    <div class="terminal-dot green"></div>
+                    <div class="terminal-title">terminal — pixelguard</div>
+                </div>
+                <div class="terminal-body">
+                    <div><span class="prompt">$</span> <span class="cmd">pixelguard scan ./my-java-project</span></div>
+                    <br>
+                    <div><span class="info">🔍 Scanning project structure...</span></div>
+                    <div><span class="success">✔</span> <span class="info">Detected: Maven project (Java 17, pom.xml found)</span></div>
+                    <div><span class="success">✔</span> <span class="info">187 source files, 42 declared dependencies, 118 resolved</span></div>
+                    <br>
+                    <div><span class="success">Build:</span>        <span class="success">0 errors</span>, 3 warnings</div>
+                    <div><span class="warning">Conflicts:</span>    2 dependency version conflicts</div>
+                    <div><span class="critical">Security:</span>     5 findings — <span class="critical">1 Critical</span>, <span class="high">2 High</span>, <span class="medium">2 Medium</span></div>
+                    <br>
+                    <div><span class="prompt">&gt;</span> <span class="cmd">report --severity critical</span></div>
+                    <div><span class="critical">[1] CRITICAL</span> — <span class="info">jackson-databind:2.14.0</span></div>
+                    <div class="dim">&nbsp;&nbsp;&nbsp;&nbsp;CVE-2023-35116: Remote code execution via polymorphic deserialization</div>
+                    <div class="dim">&nbsp;&nbsp;&nbsp;&nbsp;Fix: upgrade to 2.15.3+ (non-breaking patch update)</div>
+                    <br>
+                    <div><span class="success">✔</span> <span class="info">Report exported to pixelguard-report.json</span></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="features">
+            <h2 class="section-title">Built for Real Workflows</h2>
+            <p class="section-subtitle">Not just a scanner. A complete audit system.</p>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">📦</div>
+                    <h3>Full Project Ingestion</h3>
+                    <p>Reads pom.xml, build.gradle, source tree, and build logs. Detects project type automatically.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔗</div>
+                    <h3>Dependency Graph Resolution</h3>
+                    <p>Surfaces diamond dependency problems. Resolves transitive conflicts and version mismatches.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🛡️</div>
+                    <h3>Security Composition Analysis</h3>
+                    <p>Cross-references every resolved dependency against OSV.dev vulnerability feed. Real CVEs, not guesses.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔧</div>
+                    <h3>Build Log Analysis</h3>
+                    <p>Parses Maven and Gradle compiler output. Extracts real errors, distinguishes failures from warnings.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💻</div>
+                    <h3>Interactive TUI</h3>
+                    <p>Live scan progress, then queryable findings. Drill into details, filter by severity, explore fixes.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Exportable Reports</h3>
+                    <p>JSON, Markdown, SARIF. CI/CD pipeline ready. Same engine, interactive or headless.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="tui-section">
+            <h2 class="section-title">Interactive Terminal UI</h2>
+            <p class="section-subtitle">Scan once, then explore without re-running.</p>
+            <div class="tui-preview">
+                <div class="tui-title"> PixelGuard Interactive Report </div>
+                <h4>Executive Summary</h4>
+                <div>Project: /home/user/my-java-project</div>
+                <div>Type: Maven | Files: 187 | Dependencies: 118</div>
+                <div>Scan duration: 2.4s</div>
+                <h4>Summary</h4>
+                <div style="color: var(--green);">Build Errors           0</div>
+                <div style="color: var(--yellow);">Dependency Conflicts   2</div>
+                <div style="color: var(--red);">Critical Security      1</div>
+                <div style="color: var(--orange);">High Security          2</div>
+                <div style="color: var(--yellow);">Medium Security        2</div>
+                <div style="color: var(--green);">Low Security           0</div>
+                <h4>Findings</h4>
+                <div class="tui-row"><span class="tui-cursor"> ▸ </span> 🔴 [Critical] Remote code execution via deserialization</div>
+                <div class="tui-row">&nbsp;&nbsp;&nbsp;&nbsp; 🟠 [High] Prototype pollution in JSON parser</div>
+                <div class="tui-row">&nbsp;&nbsp;&nbsp;&nbsp; 🟠 [High] SQL injection in query builder</div>
+                <div class="status-bar">
+                    Project: Maven │ Findings: 5 │ Phase: Findings
+                </div>
+            </div>
+        </section>
+
+        <section class="architecture">
+            <h2 class="section-title">Architecture</h2>
+            <p class="section-subtitle">Clean Go package layout, built for extensibility.</p>
+            <div class="arch-diagram">
+<span class="folder">pixelguard/</span>
+├── <span class="file">cmd/pixelguard/main.go</span>         <span class="comment"># CLI entry point (cobra)</span>
+├── <span class="folder">internal/</span>
+│   ├── <span class="folder">types/</span>                     <span class="comment"># Shared types (Severity, Dependency, Report)</span>
+│   ├── <span class="folder">parser/</span>
+│   │   ├── <span class="file">parser.go</span>              <span class="comment"># Maven pom.xml + Gradle build.gradle parsers</span>
+│   │   └── <span class="file">parser_test.go</span>         <span class="comment"># Parser tests</span>
+│   ├── <span class="folder">resolver/</span>
+│   │   ├── <span class="file">graph.go</span>               <span class="comment"># Dependency graph resolver + transitive simulation</span>
+│   │   └── <span class="file">graph_test.go</span>          <span class="comment"># Resolver tests</span>
+│   ├── <span class="folder">analyzer/</span>
+│   │   ├── <span class="file">build.go</span>               <span class="comment"># Build log analyzer (Java/Gradle error patterns)</span>
+│   │   └── <span class="file">security.go</span>            <span class="comment"># OSV.dev SCA connector</span>
+│   ├── <span class="folder">engine/</span>
+│   │   └── <span class="file">engine.go</span>              <span class="comment"># Orchestrator (progress callbacks, phased scan)</span>
+│   ├── <span class="folder">report/</span>
+│   │   └── <span class="file">report.go</span>              <span class="comment"># Export: JSON, Markdown, SARIF</span>
+│   └── <span class="folder">ui/</span>
+│       ├── <span class="file">banner.go</span>              <span class="comment"># Colored CLI output helpers</span>
+│       └── <span class="file">tui.go</span>                 <span class="comment"># Interactive Bubbletea TUI</span>
+└── <span class="file">AGENT_PROMPT.md</span>                <span class="comment"># AI analysis agent system prompt</span>
+            </div>
+        </section>
+
+        <footer>
+            <p>
+                Built with ❤️ by <a href="https://github.com/jaylukdevelopment">Jay</a> &
+                <a href="https://github.com/PixelCity-dev">PixelCity</a>
+            </p>
+            <p style="margin-top: 8px;">
+                <a href="https://github.com/PixelCity-dev/pixelguard/blob/master/LICENSE">MIT License</a>
+                ·
+                <a href="https://github.com/PixelCity-dev/pixelguard">GitHub</a>
+                ·
+                <a href="https://github.com/PixelCity-dev/pixelguard#readme">Documentation</a>
+            </p>
+        </footer>
+    </div>
+</body>
+</html>
